@@ -55,7 +55,7 @@ function fileToGenerativePart(path, mimeType) {
   const prompt = "Describe what is this ?";
 
   const imagePart = fileToGenerativePart(
-    `D:\Github\Nodejs_gemini-main\Nodejs_gemini-main\chips.jpg`
+    `D:/Github/Nodejs_gemini-main/Nodejs_gemini-main/chips.jpg`
   );
   
 const imageFunction = async() => {
