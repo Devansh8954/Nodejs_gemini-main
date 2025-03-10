@@ -55,8 +55,7 @@ function fileToGenerativePart(path, mimeType) {
   const prompt = "Describe what is this ?";
 
   const imagePart = fileToGenerativePart(
-    `./chips.jpg`,
-    "image/jpeg",
+    `./chips.jpg`
   );
   
 const imageFunction = async() => {
