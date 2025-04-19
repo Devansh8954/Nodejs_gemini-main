@@ -20,7 +20,7 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html')); 
 });
 
-const gemini_api_key = "AIzaSyDajkClcAAGZwzidh9G45dtPW7_ZS3dhMw"; //process.env.API_KEY;
+const gemini_api_key = process.env.API_KEY;
 const googleAI = new GoogleGenerativeAI(gemini_api_key);
 const geminiModel = googleAI.getGenerativeModel({
     model: "gemini-1.5-flash",
