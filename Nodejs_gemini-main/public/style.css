@@ -10,22 +10,24 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
-  background-image: linear-gradient(to right, #b2f7ef, #efffba);
+  min-height: 100vh;
   background: linear-gradient(to bottom, #0b0b2b, #1b2735 70%, #090a0f);
-  overflow: hidden;
+  overflow-x: hidden;
+  padding: 20px;
 }
 
 .container {
-  width: 600px;
-  background-color: rgba(255, 255, 255, 0.05); /* Slightly transparent white */
+  width: 100%;
+  max-width: 600px;
+  background-color: rgba(255, 255, 255, 0.05);
   border-radius: 12px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
-  height: 700px; /* Fixed height for the container */
+  height: 90vh;
+  max-height: 700px;
   overflow: hidden;
-  backdrop-filter: blur(10px); /* Optional: adds glassmorphism effect */
+  backdrop-filter: blur(10px);
 }
 
 /* Chat Header */
@@ -140,16 +142,78 @@ input::placeholder {
   background: transparent;
 }
 
-/* Media Queries for Responsiveness */
-@media (min-width: 768px) {
+/* Enhanced Media Queries for Responsiveness */
+@media (max-width: 768px) {
   .container {
-    width: 700px;
+    height: 85vh;
+  }
+
+  .chat-header {
+    padding: 15px 15px;
+    font-size: 1.4rem;
+  }
+
+  .message {
+    font-size: 0.85rem;
+    padding: 8px 12px;
+    max-width: 85%;
+  }
+
+  .input-area {
+    padding: 10px 8px;
+  }
+
+  input {
+    padding: 8px;
+    font-size: 0.9rem;
+  }
+
+  .send-button {
+    padding: 8px 15px;
   }
 }
 
-@media (min-width: 1024px) {
+@media (max-width: 480px) {
   .container {
-    width: 900px;
+    height: 80vh;
+  }
+
+  .chat-header {
+    padding: 12px 12px;
+    font-size: 1.2rem;
+  }
+
+  .chat-history {
+    padding: 15px;
+  }
+
+  .message {
+    font-size: 0.8rem;
+    padding: 6px 10px;
+  }
+
+  input {
+    padding: 6px;
+    font-size: 0.85rem;
+  }
+
+  .send-button {
+    padding: 6px 12px;
+  }
+}
+
+@media (max-height: 600px) {
+  .container {
+    height: 95vh;
+  }
+
+  .chat-header {
+    padding: 10px;
+    font-size: 1.1rem;
+  }
+
+  .chat-history {
+    padding: 10px;
   }
 }
 
