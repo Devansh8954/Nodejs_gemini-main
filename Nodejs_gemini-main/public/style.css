@@ -7,28 +7,31 @@
 
 body {
   font-family: 'Poppins', sans-serif;
-  background-color: #f5f5f5;
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
   background-image: linear-gradient(to right, #b2f7ef, #efffba);
+  background: linear-gradient(to bottom, #0b0b2b, #1b2735 70%, #090a0f);
+  overflow: hidden;
 }
 
 .container {
   width: 600px;
-  background-color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.05); /* Slightly transparent white */
   border-radius: 12px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
   height: 700px; /* Fixed height for the container */
   overflow: hidden;
+  backdrop-filter: blur(10px); /* Optional: adds glassmorphism effect */
 }
 
 /* Chat Header */
 .chat-header {
-  background-color: #81c784; /* Light green background */
+  /* background-color: #81c784; Light green background */
+  background-color: rgba(129, 199, 132, 0.4); /* Transparent green */
   color: white;
   padding: 25px 20px;
   text-align: center;
@@ -49,8 +52,8 @@ body {
   flex-grow: 1;
   padding: 20px;
   overflow-y: auto; /* Scroll when chat exceeds available space */
-  background-color: #e8f5e9; /* Light green chat background */
   max-height: calc(100% - 65px); /* Ensures that the chat history fills the available space */
+  background-color: rgba(232, 245, 233, 0.1); /* Very light transparent */
 }
 
 .message {
@@ -63,25 +66,29 @@ body {
 }
 
 .user-message {
-  background-color: #c8e6c9; /* Light green bubble for user */
-  color: #333;
+  background-color: rgba(200, 230, 201, 0.3); /* Semi-transparent light green */
+  color: #fff;
   text-align: right;
   align-self: flex-end;
+  backdrop-filter: blur(5px); /* Optional: adds a soft blur behind text */
+  border: 1px solid rgba(200, 230, 201, 0.4); /* Light border for visibility */
 }
 
 .model-message {
-  background-color: #a5d6a7; /* Slightly darker green for model */
-  color: #333;
+  background-color: rgba(165, 214, 167, 0.3); /* Semi-transparent green */
+  color: #fff;
   text-align: left;
   align-self: flex-start;
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(165, 214, 167, 0.4);
 }
 
 /* Input Area */
 .input-area {
   display: flex;
-  background-color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.05); /* Transparent input background */
   padding: 15px 10px;
-  border-top: 1px solid #ccc;
+  border-top: 1px solid rgba(204, 204, 204, 0.3);
   flex-shrink: 0; /* Prevents the input area from shrinking when the chat history grows */
 }
 
@@ -143,5 +150,129 @@ input::placeholder {
 @media (min-width: 1024px) {
   .container {
     width: 900px;
+  }
+}
+
+/* Stars */
+.stars {
+  width: 1px;
+  height: 1px;
+  position: absolute;
+  background: white;
+  box-shadow:
+    2vw 5vh 2px white, 10vw 8vh 2px white, 15vw 15vh 1px white,
+    22vw 22vh 1px white, 28vw 12vh 2px white, 32vw 32vh 1px white,
+    38vw 18vh 2px white, 42vw 35vh 1px white, 48vw 25vh 2px white,
+    53vw 42vh 1px white, 58vw 15vh 2px white, 63vw 38vh 1px white,
+    68vw 28vh 2px white, 73vw 45vh 1px white, 78vw 32vh 2px white,
+    83vw 48vh 1px white, 88vw 20vh 2px white, 93vw 52vh 1px white,
+    98vw 35vh 2px white, 5vw 60vh 1px white, 12vw 65vh 2px white;
+  animation: twinkle 8s infinite linear;
+  z-index: 0;
+}
+
+.stars::after {
+  content: "";
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  background: white;
+  box-shadow:
+    8vw 12vh 2px white, 16vw 18vh 1px white, 24vw 25vh 2px white,
+    33vw 15vh 1px white, 41vw 28vh 2px white, 49vw 35vh 1px white,
+    57vw 22vh 2px white, 65vw 42vh 1px white;
+  animation: twinkle 6s infinite linear reverse;
+}
+
+/* Shooting Stars */
+.shooting-star {
+  position: absolute;
+  width: 100px;
+  height: 2px;
+  background: linear-gradient(90deg, white, transparent);
+  animation: shoot 3s infinite ease-in;
+  z-index: 0;
+}
+
+.shooting-star:nth-child(2) { top: 20%; left: -100px; animation-delay: 0s; }
+.shooting-star:nth-child(3) { top: 35%; left: -100px; animation-delay: 1s; }
+.shooting-star:nth-child(4) { top: 50%; left: -100px; animation-delay: 2s; }
+.shooting-star:nth-child(5) { top: 65%; left: -100px; animation-delay: 3s; }
+.shooting-star:nth-child(6) { top: 80%; left: -100px; animation-delay: 4s; }
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 0.4; }
+}
+
+@keyframes shoot {
+  0% {
+    transform: translateX(0) translateY(0) rotate(25deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(120vw) translateY(50vh) rotate(25deg);
+    opacity: 0;
+  }
+}
+
+.background-layer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  pointer-events: none; /* Prevent interaction */
+  overflow: hidden;
+}
+
+.typing-indicator {
+  display: inline-block;
+  position: relative;
+  width: 60px;
+  height: 20px;
+}
+
+.typing-indicator span {
+  position: absolute;
+  height: 10px;
+  width: 10px;
+  background-color: white;
+  border-radius: 50%;
+  animation: blink 1.4s infinite both;
+}
+
+.typing-indicator span:nth-child(1) {
+  left: 0px;
+  animation-delay: 0s;
+}
+.typing-indicator span:nth-child(2) {
+  left: 15px;
+  animation-delay: 0.2s;
+}
+.typing-indicator span:nth-child(3) {
+  left: 30px;
+  animation-delay: 0.4s;
+}
+
+@keyframes blink {
+  0% { opacity: 0.2; transform: scale(1); }
+  20% { opacity: 1; transform: scale(1.2); }
+  100% { opacity: 0.2; transform: scale(1); }
+}
+
+.message {
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

@@ -5,15 +5,13 @@ const axios = require('axios')
 const multer = require('multer');
 const bodyParser = require('body-parser');
 const fs = require('fs')
-const fileContent = fs.readFileSync("D:/Github/Nodejs_gemini-main/Nodejs_gemini-main","utf-8");
 const path = require('path');
 const app = express()
 const port = process.env.PORT || 3000
 app.use(bodyParser.json());
 app.use(express.json())
 app.get('/', (req, res) => {
-  res.writeHead(200, {'Content-type':'text/html'});
-  res.send(fileContent)
+  res.send()
 })
 
 
