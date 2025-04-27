@@ -9,7 +9,7 @@ npm-debug.log*
 # Environment variables
 .env
 *.key
-*.pem
+*.pem 
 
 
 # Build output

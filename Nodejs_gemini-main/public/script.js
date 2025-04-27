@@ -152,7 +152,7 @@ function getTimestamp() {
 }
 
 function getTypingDelay(responseText) {
-  // Simulate delay based on message length (minimum 800ms, max 3000ms)
+  // Simulate delay based on message length (minimum 300ms, max 3000ms)
   const wordCount = responseText.split(' ').length;
   return Math.min(3000, Math.max(800, wordCount * 40));
 }
