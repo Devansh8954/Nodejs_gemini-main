@@ -53,9 +53,12 @@ body {
 .chat-history {
   flex-grow: 1;
   padding: 20px;
-  overflow-y: auto; /* Scroll when chat exceeds available space */
-  max-height: calc(100% - 65px); /* Ensures that the chat history fills the available space */
-  background-color: rgba(232, 245, 233, 0.1); /* Very light transparent */
+  overflow-y: auto;
+  max-height: calc(100% - 65px);
+  background-color: rgba(232, 245, 233, 0.1);
+  display: flex;               /* ✅ Fix: needed so align-self works on bubbles */
+  flex-direction: column;
+  gap: 4px;
 }
 
 .message {
@@ -77,12 +80,23 @@ body {
 }
 
 .model-message {
-  background-color: rgba(165, 214, 167, 0.3); /* Semi-transparent green */
+  background-color: rgba(165, 214, 167, 0.3);
   color: #fff;
   text-align: left;
   align-self: flex-start;
   backdrop-filter: blur(5px);
   border: 1px solid rgba(165, 214, 167, 0.4);
+}
+
+.error-message {
+  background-color: rgba(255, 150, 100, 0.15);
+  border: 1px solid rgba(255, 150, 100, 0.35);
+  color: #ffcba4;
+}
+
+.countdown {
+  font-weight: 700;
+  color: #ffd580;
 }
 
 /* Input Area */
