@@ -69,7 +69,10 @@ function sendMessage() {
     .then(response => {
       if (!response.ok) {
         return response.json().then(err => {
-          throw new Error(err.message || `Server error ${response.status}`);
+          const e = new Error(err.error || `Server error ${response.status}`);
+          e.status = response.status;
+          e.retryAfter = err.retryAfter || null;
+          throw e;
         });
       }
       return response.json();
@@ -91,13 +94,38 @@ function sendMessage() {
     .catch(error => {
       console.error('Chat error:', error);
       removeTypingIndicator();
-      appendMessage(
-        `<i>⚠️ Sorry, something went wrong: <strong>${error.message || 'Please try again.'}</strong></i> <small>${getTimestamp()}</small>`,
-        'model-message'
-      );
-      isSending = false;
-      sendButton.disabled = false;
-      messageInput.focus();
+
+      const is429 = error.status === 429;
+      let errorHtml;
+
+      if (is429) {
+        let countdown = error.retryAfter || 15;
+        const msgEl = appendMessage(
+          `<i>⏳ ${error.message} Retrying in <span class="countdown">${countdown}</span>s...</i> <small>${getTimestamp()}</small>`,
+          'model-message error-message'
+        );
+        const timer = setInterval(() => {
+          countdown--;
+          const span = msgEl.querySelector('.countdown');
+          if (span) span.textContent = countdown;
+          if (countdown <= 0) {
+            clearInterval(timer);
+            msgEl.innerHTML = `<i>🔄 Retrying now...</i>`;
+            messageInput.value = message; // Restore the message
+            isSending = false;
+            sendButton.disabled = false;
+            sendMessage(); // Auto-retry
+          }
+        }, 1000);
+      } else {
+        appendMessage(
+          `<i>⚠️ ${error.message}</i> <small>${getTimestamp()}</small>`,
+          'model-message error-message'
+        );
+        isSending = false;
+        sendButton.disabled = false;
+        messageInput.focus();
+      }
     });
 }
 
