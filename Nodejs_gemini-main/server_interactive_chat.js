@@ -24,7 +24,7 @@ if (!gemini_api_key) {
 
 const googleAI = new GoogleGenerativeAI(gemini_api_key);
 const geminiModel = googleAI.getGenerativeModel({
-    model: "gemini-1.5-flash", // ✅ Higher free-tier quota: 1500 req/day, 15 RPM
+    model: "gemini-2.0-flash-lite", // ✅ Free tier: 30 RPM, 1500 req/day — works with v1beta
 });
 
 /* ----------------------------------------------- */
