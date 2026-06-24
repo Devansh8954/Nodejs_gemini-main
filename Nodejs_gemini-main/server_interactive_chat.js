@@ -23,17 +23,27 @@ if (!gemini_api_key) {
 }
 
 const googleAI = new GoogleGenerativeAI(gemini_api_key);
+
+// System instruction — passed at model level, NOT injected into every message
+const SYSTEM_INSTRUCTION = `You are a supportive AI chatbot designed to help students with emotional and mental health support.
+Respond in a kind, empathetic, and helpful way — like a trusted friend and mentor.
+Do not share personal information. Do not ask "Is there anything else I can do to help?" — instead check in naturally like "How are you feeling about that?".
+If someone mentions suicidal thoughts, self-harm, or dangerous situations, respond with deep care, make them feel valued, and gently guide them toward positive steps.
+Avoid repetitive or robotic questions. Let the conversation feel natural and human.
+Always make sure the user feels safe, heard, and cared for.`;
+
 const geminiModel = googleAI.getGenerativeModel({
-    model: "gemini-2.0-flash-lite", // ✅ Free tier: 30 RPM, 1500 req/day — works with v1beta
+    model: "gemini-2.0-flash-lite",
+    systemInstruction: SYSTEM_INSTRUCTION,
 });
 
-/* ----------------------------------------------- */
-
-// Cap history to last 20 messages to avoid token limit errors on Render
-const MAX_HISTORY = 20;
+// ----------------------------------------------------------------
+// chatHistory stores ONLY completed exchanges (user + model pairs)
+// It must ALWAYS end with a 'model' turn so the next sendMessage()
+// correctly starts a 'user' turn — no consecutive same-role bug.
+// ----------------------------------------------------------------
+const MAX_HISTORY = 40; // 20 user + 20 model turns
 let chatHistory = [];
-
-/* ----------------------------------------------- */
 
 app.get('/home', (req, res) => {
     res.status(200).json('Welcome, your app is working well');
@@ -46,35 +56,28 @@ app.get('/chat', async (req, res) => {
             return res.status(400).json({ error: 'Missing message query parameter' });
         }
 
-        // Add the user message to the chat history
-        chatHistory.push({ role: 'user', parts: [{ text: message }] });
-
-        // Trim history to the last MAX_HISTORY messages to prevent token overflow
+        // Trim history BEFORE the call so we don't exceed token limits
         if (chatHistory.length > MAX_HISTORY) {
-            chatHistory = chatHistory.slice(chatHistory.length - MAX_HISTORY);
+            // Keep pairs (user+model), so slice on even boundary
+            const trimTo = chatHistory.length - MAX_HISTORY;
+            chatHistory = chatHistory.slice(trimTo % 2 === 0 ? trimTo : trimTo + 1);
         }
 
-        const systemPrompt = `You are a supportive AI chatbot designed to help students with emotional and mental health support. Your responses should be empathetic and understanding.
-        User says: ${message}
-        Respond to the user in a kind and helpful way, but do not share personal information.
-        Do not ask like this, "Is there anything else I can do to help?" instead ask like "are you comfortable or fine now?" and also don't ask this all the time.
-        If someone uses words like "suicidal", "killing", or other dangerous words, try to be their mentor, guider, and make them feel special — be their friend.
-        Avoid asking repetitive or robotic questions like "Is there anything else I can help with?" Instead ask in a more human way.
-        Always make sure the user feels safe, heard, and cared for. Let the conversation flow naturally, as if you're simply a supportive friend who's always there to listen.`;
-
-        // Send the message to the model (with one automatic retry on 429)
+        // Pass history snapshot + send ONLY the raw user message
+        // The SDK's sendMessage() will add the user turn itself
+        const chat = geminiModel.startChat({ history: [...chatHistory] });
         let result;
+
         try {
-            const chat = geminiModel.startChat({ history: chatHistory });
-            result = await chat.sendMessage(systemPrompt);
+            result = await chat.sendMessage(message);
         } catch (apiError) {
             const is429 = apiError?.status === 429 || apiError?.message?.includes('429');
             if (is429) {
-                // Wait 15 seconds and retry once
                 console.warn('⚠️ Rate limited (429). Retrying in 15s...');
                 await new Promise(resolve => setTimeout(resolve, 15000));
-                const retryChat = geminiModel.startChat({ history: chatHistory });
-                result = await retryChat.sendMessage(systemPrompt);
+                // Fresh chat with same history, retry
+                const retryChat = geminiModel.startChat({ history: [...chatHistory] });
+                result = await retryChat.sendMessage(message);
             } else {
                 throw apiError;
             }
@@ -82,16 +85,17 @@ app.get('/chat', async (req, res) => {
 
         const responseText = result.response.text();
 
-        // Add the model response to the chat history
-        chatHistory.push({ role: 'model', parts: [{ text: responseText }] });
+        // Save BOTH turns to history as a completed pair
+        chatHistory.push(
+            { role: 'user',  parts: [{ text: message }] },
+            { role: 'model', parts: [{ text: responseText }] }
+        );
 
-        // Send the model response to the client
         res.json({ response: responseText });
+
     } catch (error) {
-        // Log the full error for debugging on Render logs
         console.error("❌ Chat error:", error?.message || error);
 
-        // Detect specific error types and return clean messages
         const is429 = error?.status === 429 || error?.message?.includes('429');
         const statusCode = is429 ? 429 : (error?.status || 500);
         const userMessage = is429
