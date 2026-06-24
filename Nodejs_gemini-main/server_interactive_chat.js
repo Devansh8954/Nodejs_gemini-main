@@ -24,7 +24,7 @@ if (!gemini_api_key) {
 
 const googleAI = new GoogleGenerativeAI(gemini_api_key);
 const geminiModel = googleAI.getGenerativeModel({
-    model: "gemini-2.0-flash", // ✅ Fixed: was "gemini-3.5-flash" (doesn't exist)
+    model: "gemini-1.5-flash", // ✅ Higher free-tier quota: 1500 req/day, 15 RPM
 });
 
 /* ----------------------------------------------- */
@@ -62,9 +62,24 @@ app.get('/chat', async (req, res) => {
         Avoid asking repetitive or robotic questions like "Is there anything else I can help with?" Instead ask in a more human way.
         Always make sure the user feels safe, heard, and cared for. Let the conversation flow naturally, as if you're simply a supportive friend who's always there to listen.`;
 
-        // Send the message to the model
-        const chat = geminiModel.startChat({ history: chatHistory });
-        const result = await chat.sendMessage(systemPrompt);
+        // Send the message to the model (with one automatic retry on 429)
+        let result;
+        try {
+            const chat = geminiModel.startChat({ history: chatHistory });
+            result = await chat.sendMessage(systemPrompt);
+        } catch (apiError) {
+            const is429 = apiError?.status === 429 || apiError?.message?.includes('429');
+            if (is429) {
+                // Wait 15 seconds and retry once
+                console.warn('⚠️ Rate limited (429). Retrying in 15s...');
+                await new Promise(resolve => setTimeout(resolve, 15000));
+                const retryChat = geminiModel.startChat({ history: chatHistory });
+                result = await retryChat.sendMessage(systemPrompt);
+            } else {
+                throw apiError;
+            }
+        }
+
         const responseText = result.response.text();
 
         // Add the model response to the chat history
@@ -75,14 +90,17 @@ app.get('/chat', async (req, res) => {
     } catch (error) {
         // Log the full error for debugging on Render logs
         console.error("❌ Chat error:", error?.message || error);
-        console.error("Status:", error?.status);
-        console.error("Details:", JSON.stringify(error?.errorDetails || {}, null, 2));
 
-        // Send a helpful error message back
-        const statusCode = error?.status || 500;
+        // Detect specific error types and return clean messages
+        const is429 = error?.status === 429 || error?.message?.includes('429');
+        const statusCode = is429 ? 429 : (error?.status || 500);
+        const userMessage = is429
+            ? 'The AI is a bit busy right now. Please wait a moment and try again.'
+            : 'Something went wrong on our end. Please try again.';
+
         res.status(statusCode).json({
-            error: 'An error occurred',
-            message: error?.message || 'Unknown error'
+            error: userMessage,
+            retryAfter: is429 ? 15 : null
         });
     }
 });
